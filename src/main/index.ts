@@ -84,6 +84,8 @@ import {
 
 import { initUpdater, checkForUpdates, downloadUpdate, installUpdate } from './updater'
 
+import { isTrustedAuthNavigation } from './utils/auth-navigation'
+
 import log from 'electron-log'
 log.transports.file.resolvePathFn = () => getLogFilePath('main')
 
@@ -1320,12 +1322,20 @@ if (!gotTheLock) {
 
         // ── In-page navigation to a different origin → open externally ──
         // This catches regular link clicks (no target) that would navigate
-        // the webview away from the Open WebUI instance.
+        // the webview away from the Open WebUI instance. Configured SSO origins
+        // stay in this session so callbacks retain their PKCE/state cookies.
         contents.on('will-navigate', (event, url) => {
           try {
             const currentOrigin = new URL(contents.getURL()).origin
             const targetOrigin = new URL(url).origin
-            if (targetOrigin !== currentOrigin) {
+            const connection = CONFIG?.connections.find(
+              (connection) =>
+                contents.session === session.fromPartition(`persist:connection-${connection.id}`)
+            )
+            if (
+              targetOrigin !== currentOrigin &&
+              !isTrustedAuthNavigation(currentOrigin, targetOrigin, connection)
+            ) {
               event.preventDefault()
               openUrl(url)
             }

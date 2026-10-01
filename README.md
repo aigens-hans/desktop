@@ -37,6 +37,35 @@ Internet required on first launch. After that, everything works offline. [All re
 
 Use both at the same time.
 
+## Single sign-on on remote connections
+
+If an OAuth/OIDC login opens your browser at the callback and leaves the desktop
+app stuck, add `authOrigins` to that connection in the desktop `config.json`.
+Quit the app before editing, then restart it. List each trusted identity provider
+origin in the login chain; the Open WebUI server's own origin is included automatically.
+
+```json
+{
+  "id": "existing-connection-id",
+  "name": "My server",
+  "type": "remote",
+  "url": "https://chat.example.com",
+  "authOrigins": ["https://login.example.com", "https://accounts.example.com"]
+}
+```
+
+Keep the existing connection ID. Configuration lives at:
+
+- macOS: `~/Library/Application Support/open-webui/config.json`
+- Windows: `%APPDATA%/open-webui/config.json`
+- Linux: `${XDG_CONFIG_HOME:-~/.config}/open-webui/config.json`
+
+Only HTTPS origins are accepted in `authOrigins` (no paths, credentials, queries,
+fragments or wildcards). Navigation between the server and these origins stays
+inside the connection's browser session, preserving OAuth state and PKCE cookies.
+Other external links and popup links continue to open in your default browser.
+Connections without `authOrigins` keep their existing behavior.
+
 ## Highlights
 
 - ⚡ **Spotlight.** Hit `Shift+Cmd+I` (macOS) or `Shift+Ctrl+I` (Windows/Linux) to summon a floating chat bar over whatever you're doing. Drag to screenshot anything on screen.

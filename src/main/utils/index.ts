@@ -806,6 +806,7 @@ export interface Connection {
   name: string
   type: 'local' | 'remote'
   url: string
+  authOrigins?: string[]
 }
 
 export interface AppConfig {
